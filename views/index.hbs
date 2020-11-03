@@ -1,0 +1,19 @@
+<form method="GET" action="/search">
+
+    <div>
+        <label for="q">Search String</label>
+    </div>
+    <input type="text" name="q" id="q" placeholder="Enter the Show name" size="40" required>
+    <button type="submit">Search</button>
+
+</form>
+
+
+<ul class="list-group">
+    {{#each shows}}
+        <li>
+            <a href="show/{{ this.tvid }}">{{ this.name }}</a>
+        </li>
+    {{/each}}
+</ul>
+

@@ -1,0 +1,18 @@
+{{#if hasResult}}
+    <h2>Search Results</h2>
+    <table>
+
+        <tbody>
+            {{#each result}}
+                <tr>
+                    <td>{{ this.name }}</td>
+                </tr>
+            {{/each}}
+
+        </tbody>
+    </table>
+
+{{else}}
+    <h2>Your search produces no result</h2>
+
+{{/if}}

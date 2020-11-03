@@ -1,0 +1,35 @@
+<h2>Detailed View</h2>
+<table>
+    <tr>
+        <td>Name:</td>
+        <td>{{ show.name }}</td>
+    </tr>
+    <tr>
+        <td>Language:</td>
+        <td>{{ show.lang }}</td>
+    </tr>
+    <tr>
+        <td>Rating:</td>
+        <td>{{ show.rating }}</td>
+    </tr>
+
+</table>
+
+    <tr>
+        <td>
+            <img src="{{show.image}}" alt="">
+        </td>
+    </tr>
+<div>
+       {{{ show.summary }}}
+</div>
+ 
+<br>
+<tr>
+    <a href="{{ show.official_site }}" target = "_blank">Go to official site</a>
+</tr>
+    <br>
+    <br>
+<div>
+<a href="/">Back</a>
+</div> 
