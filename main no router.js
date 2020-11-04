@@ -4,7 +4,11 @@ const handlebars = require('express-handlebars')
 // get the driver with promise support
 const mysql = require('mysql2/promise')
 
-//const r = require('./tvrouter')
+// SQL 
+const SQL_FIND_BY_NAME = 'select * from tv_shows where name like ? limit 20'
+const SQL_GET_ALL_SHOWS = 'select * from tv_shows limit 20'
+const SQL_COUNT_Q = 'select count(*) as q_count where name like ?'
+const SQL_FIND_BY_TV_ID = 'select * from tv_shows where tvid = ?'
 
 // configure PORT
 const PORT = parseInt(process.argv[2]) || parseInt(process.env.PORT) || 3000;
@@ -19,8 +23,6 @@ const pool = mysql.createPool({
     connectionLimit: parseInt(process.env.DB_CONNECTION_LIMIT) || 4,
     timezone: '+08:00'
 })
-
-const tvrouter = require('./tvshows')(pool, '/tvshows')  
 
 const startApp = async (app, pool) => {
 
@@ -51,7 +53,42 @@ const app = express()
 app.engine('hbs', handlebars({ defaultLayout: 'default.hbs' }))
 app.set('view engine', 'hbs')
 
+// configure the application
+app.get('/', async (req, resp) => {
 
+    const conn = await pool.getConnection()
+
+    // to sort the array of show names by descending order
+    function compare( a, b ) {
+        if ( a.name < b.name ){
+          return 1;
+        }
+        if ( a.name > b.name ){
+          return -1;
+        }
+        return 0;
+      }
+
+    try {
+        const results = await conn.query(SQL_GET_ALL_SHOWS)
+        const shownames = results[0]
+        .map( d => {
+                return {name: d.name, tvid: d.tvid}
+            }
+        )
+        shownames.sort(compare )
+        resp.status(200)
+        resp.type('text/html')
+        resp.render('index', { shows: shownames})
+
+    } catch(e) {
+        resp.status(500)
+        resp.type('text/html')
+        resp.send(JSON.stringify(e))
+    } finally {
+        conn.release()
+    }
+})
 
 app.get('/search', 
     async (req, resp) => {
@@ -93,6 +130,46 @@ app.get('/search',
     }
 )
 
-app.use('/tvshows', tvrouter)
+app.get('/show/:tvid', async (req, resp) => {
+    const tvid = req.params['tvid']
+
+    const conn = await pool.getConnection()
+
+    try {
+        const results = await conn.query(SQL_FIND_BY_TV_ID, [ tvid ])
+        const recs = results[0]
+
+        if (recs.length <= 0) {
+            //404!
+            resp.status(404)
+            resp.type('text/html')
+            resp.send(`Not found: ${tvid}`)
+            return
+        }
+
+        resp.status(200)
+        resp.format({
+            'text/html': () => {
+                resp.type('text/html')
+                resp.render('show', { show: recs[0] })
+            },
+            'application/json': () => {
+                resp.type('application/json')
+                resp.json(recs[0])
+            },
+            'default': () => {
+                resp.type('text/plain')
+                resp.send(JSON.stringify(recs[0]))
+            }
+        })
+
+    } catch(e) {
+        resp.status(500)
+        resp.type('text/html')
+        resp.send(JSON.stringify(e))
+    } finally {
+        conn.release()
+    }
+})
 
 startApp(app, pool)

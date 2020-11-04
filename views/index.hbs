@@ -11,9 +11,9 @@
 
 <ul class="list-group">
     {{#each shows}}
-        <li>
-            <a href="show/{{ this.tvid }}">{{ this.name }}</a>
-        </li>
+        
+            <a href="{{../root}}/{{this.tvid}}">{{this.name}}</a>
+        
     {{/each}}
 </ul>
 
